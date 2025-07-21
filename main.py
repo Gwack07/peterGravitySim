@@ -179,11 +179,11 @@ def onRightClick(x, y):
         vel_y = float(screen.textinput("Velocity Y", "Enter initial Y velocity:"))
 
         if isParticle == True:
-            new_particle = Particle(mass, [vel_x, vel_y], [x / scale, y / scale])
+            new_particle = Particle(mass, [vel_x, vel_y], [x / scale - cameraPos[0], y / scale- cameraPos[1]])
         else:
             colour = str(screen.textinput("Colour", "Enter Colour:"))
             size = float(screen.textinput("Size", "Enter Size:"))
-            new_particle = Planet(mass, [vel_x, vel_y], [x / scale, y / scale], colour, size)
+            new_particle = Planet(mass, [vel_x, vel_y], [x / scale - cameraPos[0], y / scale - cameraPos[1]], colour, size)
         particles.append(new_particle)
     except:
         print("invalid input particle not created")
