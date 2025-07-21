@@ -239,7 +239,7 @@ canvas.bind("<B2-Motion>", handleRightDragMotion)
 
 canvas.bind("<ButtonPress-1>", handleMousePress)
 canvas.bind("<ButtonRelease-1>", handleMouseRelease)
-canvas.bind("<Control-Button-1>", handleRightClick)
+canvas.bind("<Control-ButtonRelease-1>", handleRightClick)
 canvas.bind("<Control-ButtonPress-1>", handleRightDragStart)
 canvas.bind("<Control-B1-Motion>", handleRightDragMotion)
 
