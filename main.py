@@ -78,28 +78,40 @@ class Button:
         self.height = height
         self.callback = callback
 
+        # Create button shape
         self.turtle = turtle.Turtle()
         self.turtle.hideturtle()
         self.turtle.penup()
-        self.turtle.goto(x, y)
-        self.turtle.shape("square")
-        self.turtle.shapesize(height / 20, width / 20)
-        self.turtle.fillcolor("gray")
-        self.turtle.showturtle()
+        self.turtle.goto(x - width / 2, y - height / 2)
+        self.turtle.color("black", "gray")
+        self.turtle.begin_fill()
+        for _ in range(2):
+            self.turtle.forward(width)
+            self.turtle.left(90)
+            self.turtle.forward(height)
+            self.turtle.left(90)
+        self.turtle.end_fill()
 
+        # Create label
         self.text = turtle.Turtle()
         self.text.hideturtle()
         self.text.penup()
+        self.text.goto(x, y - 6)
         self.text.color("white")
-        self.text.goto(x, y - 10)
         self.text.write(label, align="center", font=("Arial", 10, "bold"))
-        screen.onclick(self.checkClick)
 
-    def checkClick(self, xClick, yClick):
-        if (self.x - self.width/2 < xClick < self.x + self.width/2 and
-            self.y - self.height/2 < yClick < self.y + self.height/2):
-            self.callback()
+        # Create invisible clickable area for callback
+        self.click_area = turtle.Turtle()
+        self.click_area.penup()
+        self.click_area.goto(x, y)
+        self.click_area.shape("square")
+        self.click_area.shapesize(stretch_wid=height / 20, stretch_len=width / 20)
+        self.click_area.fillcolor("")  # transparent
+        self.click_area.color("")  # no border
+        self.click_area.onclick(self.on_click)
 
+    def on_click(self, x, y):
+        self.callback()
 
 def on_mouse_press(x, y):
     global start_pos
