@@ -2,7 +2,7 @@ import math
 import turtle
 import random
 
-tick = 0.05
+tick = 0.025
 G = 1000
 screenDimensions = [800, 600]
 scale = 1
@@ -11,6 +11,8 @@ start_pos = None
 cameraPos = [0,0] #up down left right
 isParticle = True
 rightDragStart = None
+rightDragged = False
+
 
 screen = turtle.Screen()
 screen.title("Gravitational Particle Simulator")
@@ -67,6 +69,38 @@ class Planet(Particle):
         self.particle.color(self.color)
         self.particle.shapesize(self.size)
 
+class Button:
+    def __init__(self, label, x, y, width, height, callback):
+        self.label = label
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.callback = callback
+
+        self.turtle = turtle.Turtle()
+        self.turtle.hideturtle()
+        self.turtle.penup()
+        self.turtle.goto(x, y)
+        self.turtle.shape("square")
+        self.turtle.shapesize(height / 20, width / 20)
+        self.turtle.fillcolor("gray")
+        self.turtle.showturtle()
+
+        self.text = turtle.Turtle()
+        self.text.hideturtle()
+        self.text.penup()
+        self.text.color("white")
+        self.text.goto(x, y - 10)
+        self.text.write(label, align="center", font=("Arial", 10, "bold"))
+        screen.onclick(self.checkClick)
+
+    def checkClick(self, xClick, yClick):
+        if (self.x - self.width/2 < xClick < self.x + self.width/2 and
+            self.y - self.height/2 < yClick < self.y + self.height/2):
+            self.callback()
+
+
 def on_mouse_press(x, y):
     global start_pos
     start_pos = [x / scale, y / scale]
@@ -85,20 +119,24 @@ def on_mouse_release(x, y):
     start_pos = None
 
 def onRightDrag(x, y):
-    global rightDragStart
-    rightDragStart = [x ,y]
+    global rightDragStart, rightDragged
+    rightDragStart = [x, y]
+    rightDragged = False
+
 
 def onRightDragMotion(x, y):
-    global rightDragStart, cameraPos
+    global rightDragStart, cameraPos, rightDragged
     if rightDragStart is None:
         return
     dx = x - rightDragStart[0]
     dy = y - rightDragStart[1]
 
-    cameraPos[0] += dx/scale
-    cameraPos[1] += dy/scale
+    cameraPos[0] += dx / scale
+    cameraPos[1] += dy / scale
 
-    rightDragStart = [x,y]
+    rightDragStart = [x, y]
+    rightDragged = True  # Mark that drag has occurred
+
 
 
 def onRightClick(x, y):
@@ -188,9 +226,14 @@ def handleMouseRelease(event):
     on_mouse_release(x, y)
 
 def handleRightClick(event):
+    global rightDragged
     print("Right click detected at", event.x, event.y)
+    if rightDragged:
+        print("Right click ignored due to prior drag.")
+        return
     x, y = canvasWorldCoords(event)
     onRightClick(x, y)
+
 
 
 def handleRightDragStart(event):
@@ -215,6 +258,19 @@ keybinds = {
     's':down,
     'o':particlePlanetSwap
 }
+buttons = [
+    Button("Scale +", 300, 250, 80, 40, increaseScale),
+    Button("Scale -", 300, 200, 80, 40, decreaseScale),
+    Button("Tick +", 300, 150, 80, 40, increaseTick),
+    Button("Tick -", 300, 100, 80, 40, decreaseTick),
+    Button("Flip Tick", 300, 50, 80, 40, flipTick),
+    Button("Random", 300, 0, 80, 40, randomParticle),
+    Button("↑", -300, 100, 40, 40, up),
+    Button("↓", -300, 0, 40, 40, down),
+    Button("←", -350, 50, 40, 40, left),
+    Button("→", -250, 50, 40, 40, right),
+    Button("Toggle P/P", 300, -50, 80, 40, particlePlanetSwap),
+]
 
 def update():
     for p in particles:
@@ -233,7 +289,7 @@ def update():
 canvas = screen.getcanvas()
 canvas.bind("<ButtonPress-1>", handleMousePress)
 canvas.bind("<ButtonRelease-1>", handleMouseRelease)
-canvas.bind("<Button-2>", handleRightClick)
+canvas.bind("<ButtonRelease-2>", handleRightClick)
 canvas.bind("<ButtonPress-2>", handleRightDragStart)
 canvas.bind("<B2-Motion>", handleRightDragMotion)
 
