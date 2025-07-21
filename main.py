@@ -10,6 +10,7 @@ particles = []
 start_pos = None
 cameraPos = [0,0] #up down left right
 isParticle = True
+rightDragStart = None
 
 screen = turtle.Screen()
 screen.title("Gravitational Particle Simulator")
@@ -41,7 +42,7 @@ class Particle:
         self.velocity[1] += accelY * tick
         self.pos[0] += self.velocity[0] * tick
         self.pos[1] += self.velocity[1] * tick
-        self.particle.goto(scale * (self.pos[0]+cameraPos[0]), scale * (self.pos[1]+cameraPos[0]))
+        self.particle.goto(scale * (self.pos[0]+cameraPos[0]), scale * (self.pos[1]+cameraPos[1]))
 
     def computeGravitationalAttraction(self, p2):
         dx = p2.pos[0] - self.pos[0]
@@ -78,10 +79,27 @@ def on_mouse_release(x, y):
     dx = end_pos[0] - start_pos[0]
     dy = end_pos[1] - start_pos[1]
     try:
-        particles.append(Particle(1, [dx, dy], start_pos.copy()))
+        particles.append(Particle(1, [dx, dy], [start_pos[0]-cameraPos[0], start_pos[1]-cameraPos[1]]))
     except:
         print("Invalid input, particle not created.")
     start_pos = None
+
+def onRightDrag(x, y):
+    global rightDragStart
+    rightDragStart = [x ,y]
+
+def onRightDragMotion(x, y):
+    global rightDragStart, cameraPos
+    if rightDragStart is None:
+        return
+    dx = x - rightDragStart[0]
+    dy = y - rightDragStart[1]
+
+    cameraPos[0] += dx/scale
+    cameraPos[1] += dy/scale
+
+    rightDragStart = [x,y]
+
 
 def onRightClick(x, y):
     global isParticle
@@ -139,18 +157,50 @@ def left():
 def right():
     global cameraPos
     cameraPos[0] += 1
+    print(f"Camera pos right {cameraPos}")
 
 def up():
     global cameraPos
     cameraPos[1] += 1
+    print(f"Camera pos up {cameraPos}")
 
 def down():
     global cameraPos
     cameraPos[1] -= 1
+    print(f"Camera pos down {cameraPos}")
 
 def particlePlanetSwap():
     global isParticle
     isParticle = not isParticle
+
+def canvasWorldCoords(event):
+    x = event.x - screen.window_width() // 2
+    y = screen.window_height() // 2 - event.y
+    return x, y
+
+def handleMousePress(event):
+    print("left click detected at", event.x, event.y)
+    x, y = canvasWorldCoords(event)
+    on_mouse_press(x, y)
+
+def handleMouseRelease(event):
+    x, y = canvasWorldCoords(event)
+    on_mouse_release(x, y)
+
+def handleRightClick(event):
+    print("Right click detected at", event.x, event.y)
+    x, y = canvasWorldCoords(event)
+    onRightClick(x, y)
+
+
+def handleRightDragStart(event):
+    x, y = canvasWorldCoords(event)
+    onRightDrag(x, y)
+
+def handleRightDragMotion(event):
+    x, y = canvasWorldCoords(event)
+    onRightDragMotion(x, y)
+
 
 keybinds = {
     'p': increaseScale,
@@ -181,15 +231,17 @@ def update():
     screen.ontimer(update, int(abs(tick) * 1000)) 
 
 canvas = screen.getcanvas()
-canvas.bind("<ButtonPress-1>", lambda e: on_mouse_press(
-    e.x - screen.window_width() // 2,
-    screen.window_height() // 2 - e.y
-))
-canvas.bind("<ButtonRelease-1>", lambda e: on_mouse_release(
-    e.x - screen.window_width() // 2,
-    screen.window_height() // 2 - e.y
-))
-screen.onclick(onRightClick, btn=2)
+canvas.bind("<ButtonPress-1>", handleMousePress)
+canvas.bind("<ButtonRelease-1>", handleMouseRelease)
+canvas.bind("<Button-2>", handleRightClick)
+canvas.bind("<ButtonPress-2>", handleRightDragStart)
+canvas.bind("<B2-Motion>", handleRightDragMotion)
+
+canvas.bind("<ButtonPress-1>", handleMousePress)
+canvas.bind("<ButtonRelease-1>", handleMouseRelease)
+canvas.bind("<Control-Button-1>", handleRightClick)
+canvas.bind("<Control-ButtonPress-1>", handleRightDragStart)
+canvas.bind("<Control-B1-Motion>", handleRightDragMotion)
 
 for key, func in keybinds.items():
     screen.onkey(func, key)
