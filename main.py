@@ -9,7 +9,7 @@ G = 1000
 # screen dimensions in pixels
 screenDimensions = [800, 600]
 # camera zoom scale
-scale = 1
+scale = 8
 # list to store all particles
 particles = []
 # position when starting a drag
@@ -141,7 +141,7 @@ class Button:
 def onMousePress(x, y):
     global start_pos
     start_pos = [x / scale, y / scale]
-
+# when the left mouse is released - it will append a particle at the end position
 def onMouseRelease(x, y):
     global start_pos
     if start_pos is None:
@@ -155,11 +155,13 @@ def onMouseRelease(x, y):
         print("invalid input particle not created")
     start_pos = None
 
+# when the mouse is dragged we send the current position of the mouse to chnage the position of the origin
 def onRightDrag(x, y):
     global rightDragStart, rightDragged
     rightDragStart = [x, y]
     rightDragged = False
 
+# when the mouse is dragged we send the current position of the mouse to chnage the position of the origin
 def onRightDragMotion(x, y):
     global rightDragStart, cameraPos, rightDragged
     if rightDragStart is None:
@@ -238,6 +240,16 @@ def down():
     global cameraPos, scale
     cameraPos[1] += 5 / scale
 
+def increaseG():
+    global G
+    G *= 2
+    print(f"G increased to {G}")
+
+def decreaseG():
+    global G
+    G *= 0.5
+    print(f"G decreased to {G}")
+
 def togglePause():
     global paused
     paused = not paused
@@ -301,7 +313,9 @@ keybinds = {
     's': down,
     'o': particlePlanetSwap,
     'x': togglePause,
-    'z': resetSimulation
+    'z': resetSimulation,
+    'k': increaseG,
+    'm' : decreaseG
 }
 
 # onscreen buttons for actions
@@ -318,7 +332,9 @@ buttons = [
     Button("d", -250, 50, 40, 40, right),
     Button("Toggle P/P (o)", 300, -50, 80, 40, particlePlanetSwap),
     Button("Pause (x)", 300, -100, 80, 40, togglePause),
-    Button("Reset (z)", 300, -150, 80, 40, resetSimulation)
+    Button("Reset (z)", 300, -150, 80, 40, resetSimulation),
+    Button("increase G (k)", 300, -200, 80, 40, increaseG),
+    Button("decrease G (m)", 300, -250, 80, 40, decreaseG),
 ]
 
 # main update loop
@@ -352,3 +368,4 @@ for key, func in keybinds.items():
 screen.listen()
 update()
 turtle.mainloop()
+o
