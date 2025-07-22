@@ -5,11 +5,11 @@ import random
 # time step for simulation
 tick = 0.025
 # gravitational constant
-G = 1000
+G = 500
 # screen dimensions in pixels
 screenDimensions = [800, 600]
 # camera zoom scale
-scale = 8
+scale = 4
 # list to store all particles
 particles = []
 # position when starting a drag
@@ -24,12 +24,16 @@ rightDragStart = None
 rightDragged = False
 # pause state of the simulation
 paused = False
+# bool for force colours
+showForceColours = True
+
 # setup turtle graphics screen
 screen = turtle.Screen()
 screen.title("gravitational particle simulator")
 screen.setup(screenDimensions[0], screenDimensions[1])
 screen.tracer(0)  # smoother animation
 screen.bgcolor("black")
+turtle.colormode(1.0)
 
 # class for particles including gravity and movement
 class Particle:
@@ -59,6 +63,9 @@ class Particle:
         self.pos[0] += self.velocity[0] * tick
         self.pos[1] += self.velocity[1] * tick
         self.particle.goto(scale * (self.pos[0]+cameraPos[0]), scale * (self.pos[1]+cameraPos[1]))
+        if showForceColours:
+            forceMag = self.forceMagnitude()
+            self.updateColor(forceMag)
 
     def computeGravitationalAttraction(self, p2):
         # computes gravitational attraction between two particles
@@ -76,6 +83,20 @@ class Particle:
         p2.force[0] -= fx
         p2.force[1] -= fy
 
+    def forceMagnitude(self):
+        return math.sqrt(self.force[0] ** 2 + self.force[1] ** 2)
+
+    def updateColor(self, force_mag):
+        # normalise force factor for colouring
+        scaleFactor = 10000
+        normalized = min(force_mag / scaleFactor, 1.0)
+        # gradient from blue to red (high to low force)
+        red = normalized
+        blue = 1 - normalized
+        green = 0  # optional: add green for a 3-color gradient
+        self.particle.color((red, green, blue))
+
+
 # subclass for creating planet objects with size and color
 class Planet(Particle):
     def __init__(self, mass, sVelocity, pos, color, size):
@@ -84,6 +105,16 @@ class Planet(Particle):
         self.size = size
         self.particle.color(self.color)
         self.particle.shapesize(self.size)
+        self.originalColour = color
+    def move(self):
+        # updates velocity and position based on net force
+        accelX = self.force[0] / (self.mass + 1e-11)
+        accelY = self.force[1] / (self.mass + 1e-11)
+        self.velocity[0] += accelX * tick
+        self.velocity[1] += accelY * tick
+        self.pos[0] += self.velocity[0] * tick
+        self.pos[1] += self.velocity[1] * tick
+        self.particle.goto(scale * (self.pos[0]+cameraPos[0]), scale * (self.pos[1]+cameraPos[1]))
 
 # class for creating clickable buttons on screen
 class Button:
@@ -271,6 +302,11 @@ def particlePlanetSwap():
     global isParticle
     isParticle = not isParticle
 
+def toggleColour():
+    global showForceColours
+    showForceColours = not showForceColours
+    print("show force colours toggled")
+
 # event to screen coordinate conversion
 def canvasWorldCoords(event):
     x = event.x - screen.window_width() // 2
@@ -320,7 +356,8 @@ keybinds = {
     'x': togglePause,
     'z': resetSimulation,
     'k': increaseG,
-    'm' : decreaseG
+    'm' : decreaseG,
+    'j': toggleColour,
 }
 
 # onscreen buttons for actions
