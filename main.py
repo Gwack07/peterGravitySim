@@ -173,16 +173,19 @@ def onRightDragMotion(x, y):
     rightDragStart = [x, y]
     rightDragged = True
 
+# called when right click
 def onRightClick(x, y):
     global isParticle
+    # error checking the inputs for the custom particles
     try:
         mass = float(screen.textinput("Mass", "Enter mass:"))
         vel_x = float(screen.textinput("Velocity X", "Enter initial X velocity:"))
         vel_y = float(screen.textinput("Velocity Y", "Enter initial Y velocity:"))
-
+        # checking if particle or plannet
         if isParticle == True:
             new_particle = Particle(mass, [vel_x, vel_y], [x / scale - cameraPos[0], y / scale- cameraPos[1]])
         else:
+            # if planet then there are extra options
             colour = str(screen.textinput("Colour", "Enter Colour:"))
             size = float(screen.textinput("Size", "Enter Size:"))
             new_particle = Planet(mass, [vel_x, vel_y], [x / scale - cameraPos[0], y / scale - cameraPos[1]], colour, size)
@@ -217,6 +220,7 @@ def decreaseScale():
     scale *= 0.5
     print(f"scale decreased to {scale}")
 
+# produces 100 particles with random parameters
 def randomParticle():
     global particles
     for i in range(0, 100):
@@ -240,6 +244,7 @@ def down():
     global cameraPos, scale
     cameraPos[1] += 5 / scale
 
+# increasing and decreasing the gravity constant
 def increaseG():
     global G
     G *= 2
@@ -272,7 +277,7 @@ def canvasWorldCoords(event):
     y = screen.window_height() // 2 - event.y
     return x, y
 
-# event binding handlers
+# event binding handlers - functions that might need to be triigered under certain conditions
 def handleMousePress(event):
     x, y = canvasWorldCoords(event)
     onMousePress(x, y)
@@ -320,24 +325,24 @@ keybinds = {
 
 # onscreen buttons for actions
 buttons = [
-    Button("Scale + (p)", 300, 250, 80, 40, increaseScale),
-    Button("Scale - (l)", 300, 200, 80, 40, decreaseScale),
-    Button("Tick + (up arrow)", 300, 150, 80, 40, increaseTick),
-    Button("Tick - (down arrow)", 300, 100, 80, 40, decreaseTick),
-    Button("Flip Tick (space)", 300, 50, 80, 40, flipTick),
-    Button("Random (random)", 300, 0, 80, 40, randomParticle),
+    Button("Scale + (p)", 300, 250, 100, 40, increaseScale),
+    Button("Scale - (l)", 300, 200, 100, 40, decreaseScale),
+    Button("Tick + (up arrow)", 300, 150, 100, 40, increaseTick),
+    Button("Tick - (up arrow)", 300, 100, 100, 40, decreaseTick),
+    Button("Flip Tick (space)", 300, 50, 100, 40, flipTick),
+    Button("Random (random)", 300, 0, 100, 40, randomParticle),
     Button("w", -300, 100, 40, 40, up),
     Button("s", -300, 0, 40, 40, down),
     Button("a", -350, 50, 40, 40, left),
     Button("d", -250, 50, 40, 40, right),
-    Button("Toggle P/P (o)", 300, -50, 80, 40, particlePlanetSwap),
-    Button("Pause (x)", 300, -100, 80, 40, togglePause),
-    Button("Reset (z)", 300, -150, 80, 40, resetSimulation),
-    Button("increase G (k)", 300, -200, 80, 40, increaseG),
-    Button("decrease G (m)", 300, -250, 80, 40, decreaseG),
+    Button("Toggle P/P (o)", 300, -50, 100, 40, particlePlanetSwap),
+    Button("Pause (x)", 300, -100, 100, 40, togglePause),
+    Button("Reset (z)", 300, -150, 100, 40, resetSimulation),
+    Button("increase G (k)", 300, -200, 100, 40, increaseG),
+    Button("decrease G (m)", 300, -250, 100, 40, decreaseG),
 ]
 
-# main update loop
+# main update loop - main logic for the update loop
 def update():
     if not paused:
         for p in particles:
@@ -368,4 +373,3 @@ for key, func in keybinds.items():
 screen.listen()
 update()
 turtle.mainloop()
-o
