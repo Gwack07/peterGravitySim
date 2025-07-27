@@ -85,6 +85,8 @@ class Particle:
         fy = forceMagnitude * dy / r
         self.force[0] += fx
         self.force[1] += fy
+
+        #applying force to opposing partciles
         p2.force[0] -= fx
         p2.force[1] -= fy
 
