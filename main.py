@@ -34,7 +34,7 @@ screen.setup(screenDimensions[0], screenDimensions[1])
 screen.tracer(0)  # smoother animation
 screen.bgcolor("black")
 turtle.colormode(1.0) #allows for rgb for the gradients
-
+3
 # class for particles including gravity and movement
 class Particle:
     def __init__(self, mass, sVelocity, pos):
@@ -66,6 +66,11 @@ class Particle:
         self.pos[1] += self.velocity[1] * tick
         self.particle.goto(scale * (self.pos[0]+cameraPos[0]), scale * (self.pos[1]+cameraPos[1]))
 
+        if showForceColours: # toggle for colour gradients
+            forceMag = self.forceMagnitude()
+            self.updateColor(forceMag)
+        else:
+            self.particle.color("red")
 
     def computeGravitationalAttraction(self, p2):
         # computes gravitational attraction between two particles
@@ -80,8 +85,6 @@ class Particle:
         fy = forceMagnitude * dy / r
         self.force[0] += fx
         self.force[1] += fy
-
-        #applying force to opposing partciles
         p2.force[0] -= fx
         p2.force[1] -= fy
 
@@ -91,18 +94,14 @@ class Particle:
     def forceMagnitude(self):
         return math.sqrt(self.absForce[0] ** 2 + self.absForce[1] ** 2)
 
-    def updateColor(self, forceMag, minForce, maxForce):
-        # Prevent divide by zero
-        if maxForce == minForce:
-            normalized = 0.5
-        else:
-            normalized = (forceMag - minForce) / (maxForce - minForce)
-            normalized = max(0.0, min(normalized, 1.0))  # clamp to [0,1]
-
-        # blue (low force) to red (high force)
+    def updateColor(self, forceMag):
+        # normalise force factor for colouring
+        scaleFactor = 2000
+        normalized = min(forceMag / scaleFactor, 1.0)
+        # gradient from blue to red (high to low force)
         red = normalized
         blue = 1 - normalized
-        green = 0.2  # small green component for visibility
+        green = 0  # optional: add green for a 3-color gradient
         self.particle.color((red, green, blue))
 
 
@@ -396,29 +395,13 @@ def update():
     if not paused:
         for p in particles:
             p.resetForce()
-
         for i in range(len(particles)):
             for j in range(i):
                 particles[i].computeGravitationalAttraction(particles[j])
-
-        # Compute force magnitudes for all particles
-        forceMags = [p.forceMagnitude() for p in particles]
-        if forceMags:
-            minForce = min(forceMags)
-            maxForce = max(forceMags)
-        else:
-            minForce = 0
-            maxForce = 1  # avoid division by zero
-
-        # Update positions and colors
-        for i, p in enumerate(particles):
-            if showForceColours:
-                p.updateColor(forceMags[i], minForce, maxForce)
+        for p in particles:
             p.move()
-
     screen.update()
     screen.ontimer(update, int(abs(tick) * 1000))
-
 
 # setup canvas event bindings
 canvas = screen.getcanvas()
