@@ -34,7 +34,7 @@ screen.setup(screenDimensions[0], screenDimensions[1])
 screen.tracer(0)  # smoother animation
 screen.bgcolor("black")
 turtle.colormode(1.0) #allows for rgb for the gradients
-0
+
 # class for particles including gravity and movement
 class Particle:
     def __init__(self, mass, sVelocity, pos):
