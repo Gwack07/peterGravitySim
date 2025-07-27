@@ -13,7 +13,7 @@ scale = 4
 # list to store all particles
 particles = []
 # position when starting a drag
-start_pos = None
+startPos = None
 # camera offset for panning
 cameraPos = [0, 0]
 # determines if the user is placing a planet or a particle
@@ -33,15 +33,16 @@ screen.title("gravitational particle simulator")
 screen.setup(screenDimensions[0], screenDimensions[1])
 screen.tracer(0)  # smoother animation
 screen.bgcolor("black")
-turtle.colormode(1.0)
+turtle.colormode(1.0) #allows for rgb for the gradients
 
 # class for particles including gravity and movement
 class Particle:
     def __init__(self, mass, sVelocity, pos):
         self.mass = mass
-        self.velocity = sVelocity.copy()
+        self.velocity = sVelocity.copy() #starting velocity
         self.pos = pos.copy()
         self.force = [0, 0]
+        self.absForce = [0, 0]
 
         self.particle = turtle.Turtle()
         self.particle.penup()
@@ -53,6 +54,7 @@ class Particle:
     def resetForce(self):
         # resets force before next update
         self.force = [0, 0]
+        self.absForce = [0, 0]
 
     def move(self):
         # updates velocity and position based on net force
@@ -63,9 +65,12 @@ class Particle:
         self.pos[0] += self.velocity[0] * tick
         self.pos[1] += self.velocity[1] * tick
         self.particle.goto(scale * (self.pos[0]+cameraPos[0]), scale * (self.pos[1]+cameraPos[1]))
-        if showForceColours:
+
+        if showForceColours: # toggle for colour gradients
             forceMag = self.forceMagnitude()
             self.updateColor(forceMag)
+        else:
+            self.particle.color("red")
 
     def computeGravitationalAttraction(self, p2):
         # computes gravitational attraction between two particles
@@ -83,13 +88,16 @@ class Particle:
         p2.force[0] -= fx
         p2.force[1] -= fy
 
-    def forceMagnitude(self):
-        return math.sqrt(self.force[0] ** 2 + self.force[1] ** 2)
+        self.absForce[0] += math.fabs(fx)
+        self.absForce[1] += math.fabs(fy)
 
-    def updateColor(self, force_mag):
+    def forceMagnitude(self):
+        return math.sqrt(self.absForce[0] ** 2 + self.absForce[1] ** 2)
+
+    def updateColor(self, forceMag):
         # normalise force factor for colouring
         scaleFactor = 10000
-        normalized = min(force_mag / scaleFactor, 1.0)
+        normalized = min(forceMag / scaleFactor, 1.0)
         # gradient from blue to red (high to low force)
         red = normalized
         blue = 1 - normalized
@@ -106,6 +114,7 @@ class Planet(Particle):
         self.particle.color(self.color)
         self.particle.shapesize(self.size)
         self.originalColour = color
+
     def move(self):
         # updates velocity and position based on net force
         accelX = self.force[0] / (self.mass + 1e-11)
@@ -170,21 +179,23 @@ class Button:
 
 # mouse control handlers
 def onMousePress(x, y):
-    global start_pos
-    start_pos = [x / scale, y / scale]
+    global startPos
+    startPos = [x / scale, y / scale]
+
+
 # when the left mouse is released - it will append a particle at the end position
 def onMouseRelease(x, y):
-    global start_pos
-    if start_pos is None:
+    global startPos
+    if startPos is None:
         return
     end_pos = [x / scale, y / scale]
-    dx = end_pos[0] - start_pos[0]
-    dy = end_pos[1] - start_pos[1]
+    dx = end_pos[0] - startPos[0]
+    dy = end_pos[1] - startPos[1]
     try:
-        particles.append(Particle(1, [dx, dy], [start_pos[0]-cameraPos[0], start_pos[1]-cameraPos[1]]))
+        particles.append(Particle(1, [dx, dy], [startPos[0] - cameraPos[0], startPos[1] - cameraPos[1]]))
     except:
         print("invalid input particle not created")
-    start_pos = None
+    startPos = None
 
 # when the mouse is dragged we send the current position of the mouse to chnage the position of the origin
 def onRightDrag(x, y):
