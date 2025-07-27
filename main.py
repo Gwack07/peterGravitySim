@@ -1,7 +1,7 @@
 import math
 import turtle
 import random
-#
+
 # time step for simulation
 tick = 0.025
 # gravitational constant
