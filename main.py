@@ -97,6 +97,7 @@ class Particle:
         return math.sqrt(self.absForce[0] ** 2 + self.absForce[1] ** 2)
 
     def updateColor(self, forceMag):
+        minForceMag = min(particles.)
         # normalise force factor for colouring
         scaleFactor = 10000
         normalized = min(forceMag / scaleFactor, 1.0)
